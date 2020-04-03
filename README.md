@@ -101,7 +101,16 @@ Working example is in `testproject.testapp`.
 Usage
 -----
 
+When you request sitemap over http, django substitutes website domain name from
+request to links in sitemap xml. In background, you'll need some environment 
+variables. By defaults link are generated for `localhost` over HTTPS.
+
 ```shell script
+export \
+  SITEMAP_PROTO=https \
+  SITEMAP_HOST=github.com \
+  SITEMAP_PORT=443
+
 # generate all sitemaps
 python manage.py generate_sitemap
 
