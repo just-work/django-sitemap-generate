@@ -32,7 +32,7 @@ class GenerateSitemapCommandTestCase(TestCase):
         call_command('generate_sitemap')
         self.assertTrue(self.storage.exists('sitemaps/sitemap.xml'))
         self.assertTrue(self.storage.exists('sitemaps/sitemap-video.xml'))
-        self.assertTrue(self.storage.exists('sitemaps/sitemap-video-2.xml'))
+        self.assertTrue(self.storage.exists('sitemaps/sitemap-video2.xml'))
         self.assertTrue(self.storage.exists('sitemaps/sitemap-articles.xml'))
 
         with self.storage.open('sitemaps/sitemap.xml') as f:

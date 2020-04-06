@@ -3,7 +3,6 @@ from logging import getLogger
 from typing import Dict, Optional, Callable, Type
 from urllib.parse import ParseResult, urlparse
 
-from django.conf import settings
 from django.contrib.sitemaps import Sitemap
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage, Storage
@@ -126,7 +125,7 @@ class SitemapGenerator:
         for page in sitemap.paginator.page_range:
             if page > 1:
                 page_url = f'{url}?p={page}'
-                filename = f'sitemap-{section}-{page}.xml'
+                filename = f'sitemap-{section}{page}.xml'
             else:
                 page_url = url
                 filename = f'sitemap-{section}.xml'
