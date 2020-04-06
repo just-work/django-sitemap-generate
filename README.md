@@ -136,3 +136,24 @@ def generate_sitemap():
     generator = SitemapGenerator(sitemaps={'video': VideoSitema[})
     generator.generate()
 ```
+
+And you will need to configure xml files static responses, i.e. in nginx:
+
+```
+location ~* /sitemaps/(?<fn>sitemap(-(article|video)).xml {
+    try_files /media/sitemaps/$fn$arg_p.xml @backend;
+}
+
+location /media/ {
+    alias /app/media/;
+}
+
+location @backend {
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    set $app http://app:8000;
+    proxy_pass $app;
+}
+``` 
