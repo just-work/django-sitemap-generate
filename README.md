@@ -47,6 +47,10 @@ sitemap xml files. To provide it you will need following.
         def items(self):
             return models.Video.objects.order_by('id')
     ```
+   
+    Note that `changefreq` parameter is a hint for search engine indexer, it 
+    does not affect sitemap files generation period.
+   
 3. Configure sitemap serving
     ```python
     from django.contrib.sitemaps import views
@@ -116,4 +120,19 @@ python manage.py generate_sitemap
 
 # generate sitemap for single model
 python manage.py generate_sitemap video
+```
+
+You may run sitemap generation from crontab:
+
+```
+0 0 * * * python manage.py generate_sitemap
+```
+
+You may run sitemap generation from celery:
+
+```python 
+@celery.task
+def generate_sitemap():
+    generator = SitemapGenerator(sitemaps={'video': VideoSitema[})
+    generator.generate()
 ```

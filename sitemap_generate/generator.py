@@ -1,37 +1,51 @@
 import os
 from logging import getLogger
+from typing import Dict, Optional, Callable, Type
 from urllib.parse import ParseResult, urlparse
 
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage, Storage
 from django.core.servers import basehttp
-from django.template.response import TemplateResponse
+from django.http import HttpResponse
 from django.urls import reverse
 
 from sitemap_generate import defaults
 
 
-class SitemapGenerator:
-    def __init__(self, media_path='sitemaps', storage=default_storage,
-                 index_url_name='sitemap-index', sitemaps=None):
-        cls = self.__class__
-        self.logger = getLogger(f'{cls.__module__}.{cls.__name__}')
-        self.wsgi = basehttp.get_internal_wsgi_application()
-        self.sitemap_root = os.path.join(settings.MEDIA_ROOT, media_path)
-        self.storage = storage
-        self.index_url_name = index_url_name
-        self.sitemaps = sitemaps or {}
+class SitemapError(Exception):
+    """ Sitemap generation error."""
 
-    def fetch_content(self, url: str) -> bytes:
-        self.logger.debug(f"Fetching {url}...")
+    def __init__(self, status_code, content):
+        super().__init__(status_code, content)
+        self.status_code = status_code
+        self.content = content
 
-        # noinspection PyUnusedLocal
-        def start_response(status, headers):
-            if status != "200 OK":
-                raise ValueError(status)
 
+StartResponseFunc = Callable[[str, dict], None]
+WSGIFunc = Callable[[dict, StartResponseFunc], HttpResponse]
+
+
+class ResponseRecorder:
+    """ Helper for fetching sitemaps over WSGI request."""
+
+    def __init__(self, wsgi: WSGIFunc):
+        """
+
+        :param wsgi: Django wsgi application
+        """
+        self.wsgi = wsgi
+        self.status: Optional[str] = None
+
+    def record(self, url: str) -> bytes:
+        """
+        Fetches an url over WSGI request and returns response content.
+
+        :param url: request url
+        :returns: response content
+        :raises SitemapError: if response status code is not 200.
+        """
         url: ParseResult = urlparse(url)
 
         environ = {
@@ -43,17 +57,54 @@ class SitemapGenerator:
             'QUERY_STRING': url.query,
             'HTTP_X_FORWARDED_PROTO': defaults.SITEMAP_PROTO
         }
-
-        response: TemplateResponse = self.wsgi(environ, start_response)
+        response = self.wsgi(environ, self._start_response)
+        if self.status != "200 OK":
+            raise SitemapError(self.status, response.content)
         return response.content
 
+    def _start_response(self, status, _):
+        """ WSGI headers callback func."""
+        self.status = status
+
+
+class SitemapGenerator:
+    """ Sitemap XML files generator."""
+
+    def __init__(self,
+                 media_path: str = 'sitemaps',
+                 storage: Storage = default_storage,
+                 index_url_name: str = 'sitemap-index',
+                 sitemaps: Optional[Dict[str, Type[Sitemap]]] = None):
+        """
+
+        :param media_path: relative path on file storage
+        :param storage: file storage implementation used for sitemaps
+        :param index_url_name: name of view serving sitemap index xml file
+        :param sitemaps: mapping: sitemap name -> sitemap implementation
+        """
+        cls = self.__class__
+        self.logger = getLogger(f'{cls.__module__}.{cls.__name__}')
+        self.sitemap_root = media_path
+        self.storage = storage
+        self.index_url_name = index_url_name
+        self.sitemaps = sitemaps or {}
+        self.recorder = ResponseRecorder(
+            basehttp.get_internal_wsgi_application())
+
+    def fetch_content(self, url: str) -> bytes:
+        """ Fetch sitemap xml content with wsgi request recorder."""
+        self.logger.debug(f"Fetching {url}...")
+        return self.recorder.record(url)
+
     def store_sitemap(self, filename: str, content: bytes):
+        """ Save sitemap content to file storage."""
         path = os.path.join(self.sitemap_root, filename)
         if self.storage.exists(path):
             self.storage.delete(path)
         self.storage.save(path, ContentFile(content))
 
     def generate(self, sitemap=None):
+        """ Generate all sitemap files."""
         self.logger.debug("Start sitemap generation.")
         url = reverse(self.index_url_name)
 
@@ -69,6 +120,7 @@ class SitemapGenerator:
         self.logger.debug("Finish sitemap generation.")
 
     def generate_pages(self, section: str, sitemap: Sitemap):
+        """ Generate sitemap section pages."""
         url = reverse('django.contrib.sitemaps.views.sitemap',
                       kwargs={'section': section})
         for page in sitemap.paginator.page_range:
