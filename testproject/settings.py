@@ -25,7 +25,7 @@ SECRET_KEY = '+u%oblrd+d1d^flpm%8*$brtvv+4&7w&ode93c4cj1stjv=^4j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.sitemaps',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sitemap_generate',
@@ -123,3 +124,9 @@ STATIC_URL = '/static/'
 
 # Mocked file storage for tests
 DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
+
+# Sitemap-Generate
+SITEMAP_MAPPING = 'testproject.testapp.urls.sitemaps'
+
+# Proxy-pass
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
