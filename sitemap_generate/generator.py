@@ -56,10 +56,10 @@ class ResponseRecorder:
             'QUERY_STRING': url.query,
             'HTTP_X_FORWARDED_PROTO': defaults.SITEMAP_PROTO
         }
-        response = self.wsgi(environ, self._start_response)
+        content = b''.join(self.wsgi(environ, self._start_response))
         if self.status != "200 OK":
-            raise SitemapError(self.status, response.content)
-        return response.content
+            raise SitemapError(self.status, content)
+        return content
 
     def _start_response(self, status, _):
         """ WSGI headers callback func."""
