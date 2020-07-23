@@ -77,7 +77,7 @@ Installation
 ------------
 
 ```shell script
-pip install django-sitemap generate
+pip install django-sitemap-generate
 ```   
 
 Working example is in `testproject.testapp`.
