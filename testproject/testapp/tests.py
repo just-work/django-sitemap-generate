@@ -54,7 +54,7 @@ class GenerateSitemapCommandTestCase(TestCase):
             scheme = defaults.SITEMAP_PROTO
             host = defaults.SITEMAP_HOST
             port = defaults.SITEMAP_PORT
-            if (scheme, port) in [('https', 443), ('http', 80)]:
+            if (scheme, port) in [('https', '443'), ('http', '80')]:
                 netloc = host
             else:
                 netloc = f'{host}:{port}'

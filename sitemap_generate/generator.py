@@ -50,6 +50,7 @@ class ResponseRecorder:
         environ = {
             'REQUEST_METHOD': 'GET',
             'wsgi.input': '',
+            'wsgi.url_scheme': defaults.SITEMAP_PROTO,
             'SERVER_NAME': defaults.SITEMAP_HOST,
             'SERVER_PORT': defaults.SITEMAP_PORT,
             'PATH_INFO': url.path,

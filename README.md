@@ -133,7 +133,7 @@ You may run sitemap generation from celery:
 ```python 
 @celery.task
 def generate_sitemap():
-    generator = SitemapGenerator(sitemaps={'video': VideoSitema[})
+    generator = SitemapGenerator(sitemaps={'video': VideoSitemap)
     generator.generate()
 ```
 
