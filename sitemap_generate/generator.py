@@ -1,4 +1,5 @@
 import os
+from io import StringIO
 from logging import getLogger
 from typing import Dict, Optional, Callable, Type
 from urllib.parse import ParseResult, urlparse
@@ -49,8 +50,15 @@ class ResponseRecorder:
 
         environ = {
             'REQUEST_METHOD': 'GET',
-            'wsgi.input': '',
+            'wsgi.errors': StringIO(),
+            'wsgi.input': StringIO(),
+            'wsgi.version': (1, 0),
+            'wsgi.multithread': False,
+            'wsgi.multiprocess': False,
+            'wsgi.run_once': False,
             'wsgi.url_scheme': defaults.SITEMAP_PROTO,
+            'SCRIPT_NAME': '',
+            'SERVER_PROTOCOL': 'HTTP/1.1',
             'SERVER_NAME': defaults.SITEMAP_HOST,
             'SERVER_PORT': defaults.SITEMAP_PORT,
             'PATH_INFO': url.path,
