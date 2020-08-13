@@ -122,9 +122,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# Mocked file storage for tests
-DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
-
 # Sitemap-Generate
 SITEMAP_MAPPING = 'testproject.testapp.urls.sitemaps'
 
