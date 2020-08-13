@@ -1,3 +1,2 @@
 Django==3.1
 dj-inmemorystorage==2.1.0
-factory-boy==2.12.0
