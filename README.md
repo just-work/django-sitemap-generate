@@ -90,15 +90,21 @@ Working example is in `testproject.testapp`.
     ```python
     SITEMAP_MAPPING = 'testproject.testapp.urls.sitemaps'
     ```
-3. You may need to override default sitemap index url name
+3. Specify name of the sitemap index url. If you have `urlpatterns` like
+   example above, you can write:
     ```python
-    SITEMAP_INDEX_URL = 'sitemap-index'
+    SITEMAP_INDEX_NAME = 'sitemap-index'
     ```
-4. Also you may need to setup forwarded protocol handling in django settings:
+4. Specify name of the `view.sitemap` view. If you have `urlpatterns` like
+   example above, you can write:
+    ```python
+    SITEMAPS_VIEW_NAME = 'django.contrib.sitemaps.views.sitemap'
+    ```
+5. Also you may need to setup forwarded protocol handling in django settings:
     ```python
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     ```
-5. Note that django paginates sitemap with `p` query parameter, but 
+6. Note that django paginates sitemap with `p` query parameter, but 
     corresponding sitemap files are named `sitemap-video.xml`, 
     `sitemap-video-2.xml` and so on. You'll need to configure some "rewrites".
     
@@ -133,7 +139,7 @@ You may run sitemap generation from celery:
 ```python 
 @celery.task
 def generate_sitemap():
-    generator = SitemapGenerator(sitemaps={'video': VideoSitemap)
+    generator = SitemapGenerator() # Uses django settings by default
     generator.generate()
 ```
 
