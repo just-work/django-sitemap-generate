@@ -7,13 +7,14 @@ from urllib.parse import ParseResult, urlparse
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
 from django.core.files.base import ContentFile
-from django.core.files.storage import Storage, default_storage
+from django.core.files.storage import Storage
 from django.core.servers import basehttp
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.module_loading import import_string
 
 from sitemap_generate import defaults
+from sitemap_generate import default_settings
 
 
 class SitemapError(Exception):
@@ -81,8 +82,8 @@ class SitemapGenerator:
     """ Sitemap XML files generator."""
 
     def __init__(self,
-                 media_path: str = 'sitemaps',
-                 storage: Storage = default_storage,
+                 media_path: Optional[str] = None,
+                 storage: Optional[Storage] = None,
                  index_url_name: Optional[str] = None,
                  sitemaps_view_name: Optional[str] = None,
                  sitemaps: Optional[Dict[str, Type[Sitemap]]] = None):
@@ -96,12 +97,32 @@ class SitemapGenerator:
         """
         cls = self.__class__
         self.logger = getLogger(f'{cls.__module__}.{cls.__name__}')
-        self.sitemap_root = media_path
-        self.storage = storage
+        self.sitemap_root = (
+            media_path
+            if media_path is not None
+            else getattr(
+                settings,
+                'SITEMAP_MEDIA_PATH',
+                default_settings.SITEMAP_MEDIA_PATH,
+            )
+        )
+        self.storage = (
+            storage
+            if storage is not None
+            else getattr(
+                settings,
+                'SITEMAP_STORAGE',
+                default_settings.SITEMAP_STORAGE,
+            )
+        )
         self.index_url_name = (
             index_url_name
             if index_url_name is not None
-            else getattr(settings, 'SITEMAP_INDEX_NAME', 'sitemap-index')
+            else getattr(
+                settings,
+                'SITEMAP_INDEX_NAME',
+                default_settings.SITEMAP_INDEX_NAME
+            )
         )
         self.sitemaps_view_name = (
             sitemaps_view_name
@@ -109,7 +130,7 @@ class SitemapGenerator:
             else getattr(
                 settings,
                 'SITEMAPS_VIEW_NAME',
-                'django.contrib.sitemaps.views.sitemap',
+                default_settings.SITEMAPS_VIEW_NAME,
             )
         )
         self.sitemaps = (

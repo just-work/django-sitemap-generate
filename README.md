@@ -86,27 +86,46 @@ Working example is in `testproject.testapp`.
     ```python
     INSTALLED_APPS.append('sitemap_generate')
     ```
+
 2. Add a reference to sitemap mapping to django settings:
     ```python
     SITEMAP_MAPPING = 'testproject.testapp.urls.sitemaps'
     ```
+
 3. Specify name of the sitemap index url. If you have `urlpatterns` like
    example above, you can write:
     ```python
     SITEMAP_INDEX_NAME = 'sitemap-index'
     ```
+   default: `'sitemap-index'`
+
 4. Specify name of the `view.sitemap` view. If you have `urlpatterns` like
    example above, you can write:
     ```python
     SITEMAPS_VIEW_NAME = 'django.contrib.sitemaps.views.sitemap'
     ```
-5. Also you may need to setup forwarded protocol handling in django settings:
+   default: `'django.contrib.sitemaps.views.sitemap'`
+
+5. Set media path to store sitemaps under
+    ```python
+    SITEMAP_MEDIA_PATH = 'sitemaps'
+    ```
+   default: `'sitemaps'`
+
+6. Also you may need to setup forwarded protocol handling in django settings:
     ```python
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     ```
-6. Note that django paginates sitemap with `p` query parameter, but 
+
+7. Note that django paginates sitemap with `p` query parameter, but 
     corresponding sitemap files are named `sitemap-video.xml`, 
     `sitemap-video-2.xml` and so on. You'll need to configure some "rewrites".
+
+8. Optional. Change storage for generated sitemaps
+    ```python
+    SITEMAP_STORAGE = custom_storage
+    ```
+   default: `django.core.files.storage.default_storage`
     
 Usage
 -----
