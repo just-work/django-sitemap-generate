@@ -14,7 +14,6 @@ from django.urls import reverse
 from django.utils.module_loading import import_string
 
 from sitemap_generate import defaults
-from sitemap_generate import default_settings
 
 
 class SitemapError(Exception):
@@ -97,47 +96,14 @@ class SitemapGenerator:
         """
         cls = self.__class__
         self.logger = getLogger(f'{cls.__module__}.{cls.__name__}')
-        self.sitemap_root = (
-            media_path
-            if media_path is not None
-            else getattr(
-                settings,
-                'SITEMAP_MEDIA_PATH',
-                default_settings.SITEMAP_MEDIA_PATH,
-            )
-        )
-        self.storage = (
-            storage
-            if storage is not None
-            else getattr(
-                settings,
-                'SITEMAP_STORAGE',
-                default_settings.SITEMAP_STORAGE,
-            )
-        )
-        self.index_url_name = (
-            index_url_name
-            if index_url_name is not None
-            else getattr(
-                settings,
-                'SITEMAP_INDEX_NAME',
-                default_settings.SITEMAP_INDEX_NAME
-            )
-        )
-        self.sitemaps_view_name = (
-            sitemaps_view_name
-            if sitemaps_view_name is not None
-            else getattr(
-                settings,
-                'SITEMAPS_VIEW_NAME',
-                default_settings.SITEMAPS_VIEW_NAME,
-            )
-        )
-        self.sitemaps = (
-            sitemaps
-            if sitemaps is not None
-            else import_string(settings.SITEMAP_MAPPING)
-        )
+        self.sitemap_root = media_path or defaults.SITEMAP_MEDIA_PATH
+        storage = storage or defaults.SITEMAP_STORAGE
+        self.storage = import_string(storage)
+        self.index_url_name = index_url_name or defaults.SITEMAP_INDEX_NAME
+        sitemaps_view_name = sitemaps_view_name or defaults.SITEMAPS_VIEW_NAME
+        self.sitemaps_view_name = sitemaps_view_name
+        sitemaps = sitemaps or getattr(settings, 'SITEMAP_MAPPING')
+        self.sitemaps = import_string(sitemaps)
         self.recorder = ResponseRecorder(
             basehttp.get_internal_wsgi_application())
 
