@@ -1,17 +1,20 @@
 import os
 from io import StringIO
 from logging import getLogger
-from typing import Dict, Optional, Callable, Type
+from typing import Callable, Dict, Optional, Type
 from urllib.parse import ParseResult, urlparse
 
+from django.conf import settings
 from django.contrib.sitemaps import Sitemap
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage, Storage
+from django.core.files.storage import Storage
 from django.core.servers import basehttp
 from django.http import HttpResponse
 from django.urls import reverse
+from django.utils.module_loading import import_string
 
 from sitemap_generate import defaults
+from sitemap_generate import default_settings
 
 
 class SitemapError(Exception):
@@ -79,23 +82,62 @@ class SitemapGenerator:
     """ Sitemap XML files generator."""
 
     def __init__(self,
-                 media_path: str = 'sitemaps',
-                 storage: Storage = default_storage,
-                 index_url_name: str = 'sitemap-index',
+                 media_path: Optional[str] = None,
+                 storage: Optional[Storage] = None,
+                 index_url_name: Optional[str] = None,
+                 sitemaps_view_name: Optional[str] = None,
                  sitemaps: Optional[Dict[str, Type[Sitemap]]] = None):
         """
 
         :param media_path: relative path on file storage
         :param storage: file storage implementation used for sitemaps
         :param index_url_name: name of view serving sitemap index xml file
+        :param sitemaps_view_name: name of view serving indexed sitemaps
         :param sitemaps: mapping: sitemap name -> sitemap implementation
         """
         cls = self.__class__
         self.logger = getLogger(f'{cls.__module__}.{cls.__name__}')
-        self.sitemap_root = media_path
-        self.storage = storage
-        self.index_url_name = index_url_name
-        self.sitemaps = sitemaps or {}
+        self.sitemap_root = (
+            media_path
+            if media_path is not None
+            else getattr(
+                settings,
+                'SITEMAP_MEDIA_PATH',
+                default_settings.SITEMAP_MEDIA_PATH,
+            )
+        )
+        self.storage = (
+            storage
+            if storage is not None
+            else getattr(
+                settings,
+                'SITEMAP_STORAGE',
+                default_settings.SITEMAP_STORAGE,
+            )
+        )
+        self.index_url_name = (
+            index_url_name
+            if index_url_name is not None
+            else getattr(
+                settings,
+                'SITEMAP_INDEX_NAME',
+                default_settings.SITEMAP_INDEX_NAME
+            )
+        )
+        self.sitemaps_view_name = (
+            sitemaps_view_name
+            if sitemaps_view_name is not None
+            else getattr(
+                settings,
+                'SITEMAPS_VIEW_NAME',
+                default_settings.SITEMAPS_VIEW_NAME,
+            )
+        )
+        self.sitemaps = (
+            sitemaps
+            if sitemaps is not None
+            else import_string(settings.SITEMAP_MAPPING)
+        )
         self.recorder = ResponseRecorder(
             basehttp.get_internal_wsgi_application())
 
@@ -129,7 +171,7 @@ class SitemapGenerator:
 
     def generate_pages(self, section: str, sitemap: Sitemap):
         """ Generate sitemap section pages."""
-        url = reverse('django.contrib.sitemaps.views.sitemap',
+        url = reverse(self.sitemaps_view_name,
                       kwargs={'section': section})
         for page in sitemap.paginator.page_range:
             if page > 1:
