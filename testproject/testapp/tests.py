@@ -1,6 +1,7 @@
 import os
 from typing import cast
 
+import django
 from django.core.files.storage import default_storage, Storage
 from django.core.management import call_command
 from django.test import TestCase
@@ -10,8 +11,16 @@ from testproject.testapp import models
 
 
 class GenerateSitemapCommandTestCase(TestCase):
-    header = ['<?xml version="1.0" encoding="UTF-8"?>',
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    if django.VERSION >= (3, 2):
+        header = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+            'xmlns:xhtml="http://www.w3.org/1999/xhtml">']
+    else:
+        header = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+
     footer = ['</urlset>']
 
     empty = header + [''] + footer
