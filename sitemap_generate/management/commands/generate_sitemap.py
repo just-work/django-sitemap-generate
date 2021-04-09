@@ -1,6 +1,4 @@
-from django.conf import settings
 from django.core.management import BaseCommand
-from django.utils.module_loading import import_string
 
 from sitemap_generate.generator import SitemapGenerator
 
