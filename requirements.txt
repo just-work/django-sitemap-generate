@@ -1,2 +1,2 @@
-Django==3.2.4
+Django==3.2.5
 dj-inmemorystorage==2.1.0
