@@ -97,13 +97,19 @@ class SitemapGenerator:
         cls = self.__class__
         self.logger = getLogger(f'{cls.__module__}.{cls.__name__}')
         self.sitemap_root = media_path or defaults.SITEMAP_MEDIA_PATH
-        storage = storage or defaults.SITEMAP_STORAGE
-        self.storage = import_string(storage)
+
+        if storage is None:
+            storage = import_string(defaults.SITEMAP_STORAGE)
+
+        self.storage = storage
         self.index_url_name = index_url_name or defaults.SITEMAP_INDEX_NAME
         sitemaps_view_name = sitemaps_view_name or defaults.SITEMAPS_VIEW_NAME
         self.sitemaps_view_name = sitemaps_view_name
-        sitemaps = sitemaps or getattr(settings, 'SITEMAP_MAPPING')
-        self.sitemaps = import_string(sitemaps)
+
+        if sitemaps is None:
+            sitemaps = import_string(getattr(settings, 'SITEMAP_MAPPING'))
+        self.sitemaps = sitemaps
+
         self.recorder = ResponseRecorder(
             basehttp.get_internal_wsgi_application())
 

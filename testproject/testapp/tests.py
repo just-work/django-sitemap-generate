@@ -4,10 +4,23 @@ from typing import cast
 import django
 from django.core.files.storage import default_storage, Storage
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django_testing_utils.utils import override_defaults
 
 from sitemap_generate import defaults
-from testproject.testapp import models
+from sitemap_generate.generator import SitemapGenerator
+from testproject.testapp import models, sitemaps
+
+
+# noinspection PyAbstractClass
+class TestStorage(Storage):
+    pass
+
+
+test_storage = TestStorage()
+
+
+sitemap_mapping = {'videos': sitemaps.VideoSitemap}
 
 
 class GenerateSitemapCommandTestCase(TestCase):
@@ -78,3 +91,24 @@ class GenerateSitemapCommandTestCase(TestCase):
         self.assertTrue(self.storage.exists('sitemaps/sitemap.xml'))
         self.assertTrue(self.storage.exists('sitemaps/sitemap-video.xml'))
         self.assertFalse(self.storage.exists('sitemaps/sitemap-articles.xml'))
+
+
+class SitemapGeneratorTestCase(TestCase):
+
+    @override_defaults('sitemap_generate', SITEMAP_STORAGE='testproject.testapp.tests.test_storage')
+    def test_init_storage_from_settings(self):
+        sg = SitemapGenerator()
+        self.assertIsInstance(sg.storage, TestStorage)
+
+    def test_init_storage_from_args(self):
+        sg = SitemapGenerator(storage=test_storage)
+        self.assertIs(sg.storage, test_storage)
+
+    @override_settings(SITEMAP_MAPPING='testproject.testapp.tests.sitemap_mapping')
+    def test_init_sitemaps_from_settings(self):
+        sg = SitemapGenerator()
+        self.assertIs(sg.sitemaps['videos'], sitemaps.VideoSitemap)
+
+    def test_init_sitemaps_from_args(self):
+        sg = SitemapGenerator(sitemaps=sitemap_mapping)
+        self.assertIs(sg.sitemaps['videos'], sitemaps.VideoSitemap)
