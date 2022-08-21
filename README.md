@@ -165,8 +165,8 @@ def generate_sitemap():
 And you will need to configure xml files static responses, i.e. in nginx:
 
 ```
-location ~* /sitemaps/(?<fn>sitemap(-(article|video)).xml {
-    try_files /media/sitemaps/$fn$arg_p.xml @backend;
+location ~^/sitemaps/(?<fn>sitemap(-(article|video))?.xml) {
+    alias /media/sitemaps/$fn;
 }
 
 location /media/ {
